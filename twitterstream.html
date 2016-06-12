@@ -29,49 +29,121 @@
 						});
 					},
 
-					postStatus: function(){
+					tweet: function(){
 						this.setState({
 							mode: "tweet"
 						});
 					},
-					
+
+					postStatus: function(){
+						this.setState({
+							mode: "facebook"
+						});
+					},
+
+					goBack: function(){
+						this.setState({
+							mode: "home"
+						});
+					},
+
 					render:function(){
 						if(this.state.mode == "home"){
 							return(
 								<div>
 								<button onClick={this.handleBroncosTweets}>Get Broncos Tweets</button>
-								<button onClick={this.postStatus}>Tweet Something</button>
+								<button onClick={this.tweet}>Tweet Something</button>
+								<button onClick={this.postStatus}> Post a Facebook Status </button>
 								</div>
 							)
 						}
 						else if(this.state.mode== "tweet"){
 							return(
-								<TweetDiv />
+								<TweetDiv goBack = {this.goBack} />
 							)
 						}
 						else if(this.state.mode == "broncos"){
 							return(
-								<BroncosDiv />
+								<BroncosDiv goBack = {this.goBack} />
+							)
+						}
+						else if(this.state.mode == "facebook"){
+							return(
+								<FacebookDiv goBack = {this.goBack} />
 							)
 						}
 					},
 				});
 
+				var FacebookDiv = React.createClass({
+
+					getInitialState: function(){
+						return{
+							status: ""
+						}
+					},
+
+					changeHandler: function(event){
+						this.setState({
+							status: event.target.value
+						});
+					},
+
+					post: function(){
+						$.ajax({
+							url: "/facebookPOST",
+							data: JSON.stringify(this.state.status),
+							type: 'POST',
+							success:function(){
+								console.log('status posted')
+							}
+						});
+					},
+
+					render: function(){
+						return(
+							<div>
+							<input type="text" onChange={this.changeHandler} />
+							<button onClick={this.post}> Post Status</button>
+							</div>
+						)
+					}
+				});
+
 				var TweetDiv = React.createClass({
 					
+					getInitialState: function(){
+						return{
+							tweet: ""
+						}
+					},
+
+					changeHandler: function(event){
+						this.setState({
+							tweet: event.target.value
+						});
+					},
+
 					tweet: function(){
 						$.ajax({
 							url: "/twitterPOST",
 							type: "POST",
+							data: JSON.stringify(this.state.tweet),
 							success: function(){
 								console.log('tweet posted');
 							}
 						})
 					},
 
+
+
 					render:function(){
 						return(
+							<div>
+							<input type ="text" onChange = {this.changeHandler} value = {this.state.tweet} />
 							<button onClick={this.tweet}>Tweet Now!</button>
+							<button onClick={this.props.goBack}>Go Back</button>
+							</div>
 						)
 					}
 				});
@@ -92,7 +164,10 @@
 						});
 
 						return(
+							<div>
 							<div>{contentNodes}</div>
+							<button onClick = {this.props.goBack}>Go Back</button>
+							</div>
 						)
 					}
 				});
