@@ -1,0 +1,121 @@
+<html>
+	<head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js">
+	    </script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js">
+	    </script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js">
+	    </script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js">
+	    </script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js">   
+	    </script>
+	</head>
+	<body>
+		<div>
+			<div class ="content" id = "content"></div>
+			<script type = "text/babel">
+				var data = {% raw twitterJSON %}
+				var NavigateDiv = React.createClass({
+					getInitialState: function(){
+						return{
+							mode: "home"
+						}
+					},
+
+					handleBroncosTweets: function(){
+						this.setState({
+							mode: "broncos"
+						});
+					},
+
+					postStatus: function(){
+						this.setState({
+							mode: "tweet"
+						});
+					},
+					
+					render:function(){
+						if(this.state.mode == "home"){
+							return(
+								<div>
+								<button onClick={this.handleBroncosTweets}>Get Broncos Tweets</button>
+								<button onClick={this.postStatus}>Tweet Something</button>
+								</div>
+							)
+						}
+						else if(this.state.mode== "tweet"){
+							return(
+								<TweetDiv />
+							)
+						}
+						else if(this.state.mode == "broncos"){
+							return(
+								<BroncosDiv />
+							)
+						}
+					},
+				});
+
+				var TweetDiv = React.createClass({
+					
+					tweet: function(){
+						$.ajax({
+							url: "/twitterPOST",
+							type: "POST",
+							success: function(){
+								console.log('tweet posted');
+							}
+						})
+					},
+
+					render:function(){
+						return(
+							<button onClick={this.tweet}>Tweet Now!</button>
+						)
+					}
+				});
+
+				var BroncosDiv = React.createClass({
+					getInitialState: function(){
+						return{
+							content: {% raw twitterJSON %}
+						}
+					},
+
+					render: function(){
+						console.log(this.state.content)
+						var contentNodes = this.state.content.statuses.map(function(item){
+							return( 
+								<ContentNode text = {item.text} hashtags = {item.entities.hashtags} key = {item.id}/>
+							)
+						});
+
+						return(
+							<div>{contentNodes}</div>
+						)
+					}
+				});
+
+				var ContentNode = React.createClass({
+					render:function(){
+						var hashtags = this.props.hashtags.map(function(item){
+							return(
+								<div>{item.text}</div>
+							)
+						});
+
+						return(
+							<div>{this.props.text}   ,   {hashtags}</div>
+						)
+					}
+				})
+
+				ReactDOM.render(
+					<NavigateDiv />,
+					document.getElementById("content")
+				)
+			</script>
+		</div>
+	</body>
+</html>
